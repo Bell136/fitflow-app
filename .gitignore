@@ -1,37 +1,107 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+*.coverage
+.nyc_output/
+
+# Production
+build/
+dist/
 
 # Expo
 .expo/
-dist/
-web-build/
-expo-env.d.ts
-
-# Native
-.kotlin/
-*.orig.*
+.expo-shared/
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.orig.*
+web-build/
+
+# React Native
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+ios/Pods/
+android/.gradle/
+android/app/build/
+android/build/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# IDE - IntelliJ/WebStorm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Prisma
+prisma/migrations/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# TypeScript
+*.tsbuildinfo
+.tsc-cache/
 
 # Metro
 .metro-health-check*
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+# Debug
+debug.log*
 
-# macOS
-.DS_Store
-*.pem
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
 
-# local env files
-.env*.local
+# Package manager locks (keep one, ignore others based on your choice)
+# If using npm, keep package-lock.json and add:
+# yarn.lock
+# pnpm-lock.yaml
 
-# typescript
-*.tsbuildinfo
+# If using yarn, keep yarn.lock and add:
+# package-lock.json
+# pnpm-lock.yaml
+
+# If using pnpm, keep pnpm-lock.yaml and add:
+# package-lock.json
+# yarn.lock

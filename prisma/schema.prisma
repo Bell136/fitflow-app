@@ -1,0 +1,237 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String?   // Null for social auth users
+  firstName        String?
+  lastName         String?
+  provider         Provider  @default(LOCAL)
+  emailVerified    Boolean   @default(false)
+  biometricEnabled Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  sessions         Session[]
+  passwordResets   PasswordReset[]
+  goals            Goal[]
+  workouts         Workout[]
+  meals            Meal[]
+  progress         Progress[]
+
+  @@index([email])
+}
+
+// Session model for JWT refresh tokens and device management
+model Session {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken  String    @unique
+  refreshToken String    @unique
+  deviceId     String?
+  deviceName   String?
+  platform     String?
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([accessToken])
+  @@index([refreshToken])
+}
+
+// Password reset tracking
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  usedAt    DateTime?
+
+  @@index([userId])
+  @@index([code])
+}
+
+// Goal tracking
+model Goal {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  targetValue Float?
+  currentValue Float?
+  unit        String?
+  category    GoalCategory
+  status      GoalStatus  @default(ACTIVE)
+  targetDate  DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId])
+}
+
+// Workout tracking
+model Workout {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  duration    Int?        // in minutes
+  calories    Int?
+  exercises   Exercise[]
+  completedAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([completedAt])
+}
+
+// Exercise within a workout
+model Exercise {
+  id         String   @id @default(cuid())
+  workoutId  String
+  workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  name       String
+  category   String
+  sets       Set[]
+  order      Int
+  createdAt  DateTime @default(now())
+
+  @@index([workoutId])
+}
+
+// Set within an exercise
+model Set {
+  id         String   @id @default(cuid())
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  reps       Int?
+  weight     Float?
+  distance   Float?
+  duration   Int?     // in seconds
+  restTime   Int?     // in seconds
+  order      Int
+  createdAt  DateTime @default(now())
+
+  @@index([exerciseId])
+}
+
+// Meal tracking
+model Meal {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  type      MealType
+  calories  Int?
+  protein   Float?
+  carbs     Float?
+  fat       Float?
+  fiber     Float?
+  foods     Food[]
+  loggedAt  DateTime  @default(now())
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([loggedAt])
+}
+
+// Food items in a meal
+model Food {
+  id        String   @id @default(cuid())
+  mealId    String
+  meal      Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  name      String
+  brand     String?
+  barcode   String?
+  quantity  Float
+  unit      String
+  calories  Int
+  protein   Float
+  carbs     Float
+  fat       Float
+  fiber     Float?
+  createdAt DateTime @default(now())
+
+  @@index([mealId])
+  @@index([barcode])
+}
+
+// Progress tracking
+model Progress {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         ProgressType
+  weight       Float?
+  bodyFat      Float?
+  muscleMass   Float?
+  measurements Json?        // JSON object for body measurements
+  photoUrl     String?
+  notes        String?
+  recordedAt   DateTime     @default(now())
+  createdAt    DateTime     @default(now())
+
+  @@index([userId])
+  @@index([recordedAt])
+}
+
+// Enums
+enum Provider {
+  LOCAL
+  GOOGLE
+  APPLE
+}
+
+enum GoalCategory {
+  WEIGHT_LOSS
+  MUSCLE_GAIN
+  ENDURANCE
+  STRENGTH
+  FLEXIBILITY
+  NUTRITION
+  WELLNESS
+  CUSTOM
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  ARCHIVED
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+  PRE_WORKOUT
+  POST_WORKOUT
+}
+
+enum ProgressType {
+  WEIGHT
+  BODY_COMPOSITION
+  MEASUREMENTS
+  PHOTOS
+  PERFORMANCE
+}
