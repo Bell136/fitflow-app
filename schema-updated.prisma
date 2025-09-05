@@ -1,4 +1,4 @@
-// This is your Prisma schema file,
+// This is your UPDATED Prisma schema file with fixed Food/Meal structure
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -135,45 +135,91 @@ model Set {
   @@index([exerciseId])
 }
 
-// Meal tracking
+// Meal tracking - UPDATED to work with new structure
 model Meal {
-  id        String    @id @default(cuid())
+  id        String      @id @default(cuid())
   userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
   type      MealType
+  
+  // These will be calculated from MealEntry totals
   calories  Int?
   protein   Float?
   carbs     Float?
   fat       Float?
   fiber     Float?
-  foods     Food[]
-  loggedAt  DateTime  @default(now())
-  createdAt DateTime  @default(now())
+  
+  // NEW: Reference to meal entries instead of foods
+  entries   MealEntry[]
+  
+  loggedAt  DateTime    @default(now())
+  createdAt DateTime    @default(now())
 
   @@index([userId])
   @@index([loggedAt])
 }
 
-// Food items in a meal
-model Food {
-  id        String   @id @default(cuid())
-  mealId    String
-  meal      Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
-  name      String
-  brand     String?
-  barcode   String?
-  quantity  Float
-  unit      String
-  calories  Int
-  protein   Float
-  carbs     Float
-  fat       Float
-  fiber     Float?
+// NEW: Food database for food reference data
+model FoodDatabase {
+  id          String   @id @default(cuid())
+  name        String
+  brand       String?
+  barcode     String?
+  category    String?
+  
+  // Standard serving size (usually 100g)
+  servingSize Float    @default(100)
+  servingUnit String   @default("g")
+  
+  // Nutritional values per serving size (per 100g typically)
+  caloriesPer100g Int
+  proteinPer100g  Float
+  carbsPer100g    Float
+  fatPer100g      Float
+  fiberPer100g    Float?
+  sugarPer100g    Float?
+  sodiumPer100g   Float?
+  
+  // Metadata
+  isVerified  Boolean   @default(false)
+  source      String?   // 'USER', 'USDA', 'BRANDED', etc.
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  mealEntries MealEntry[]
+
+  @@index([name])
+  @@index([barcode])
+  @@index([category])
+}
+
+// NEW: Meal entries that link meals to foods with quantities
+model MealEntry {
+  id             String       @id @default(cuid())
+  mealId         String
+  meal           Meal         @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  foodDatabaseId String
+  foodDatabase   FoodDatabase @relation(fields: [foodDatabaseId], references: [id], onDelete: Restrict)
+  
+  // Quantity consumed
+  quantity Float
+  unit     String @default("g")
+  
+  // Calculated nutritional values (based on quantity)
+  calories Int
+  protein  Float
+  carbs    Float
+  fat      Float
+  fiber    Float?
+  
+  // Optional notes
+  notes     String?
   createdAt DateTime @default(now())
 
   @@index([mealId])
-  @@index([barcode])
+  @@index([foodDatabaseId])
 }
 
 // Progress tracking
