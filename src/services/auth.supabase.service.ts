@@ -18,6 +18,28 @@ export class SupabaseAuthService {
     this.validateEmail(data.email);
     this.validatePassword(data.password);
 
+    // Validate additional fields
+    if (data.password !== data.confirmPassword) {
+      throw new ValidationError('Passwords do not match');
+    }
+
+    if (!data.termsAccepted) {
+      throw new ValidationError('You must accept the terms and conditions');
+    }
+
+    // Validate age, weight, height if provided
+    if (data.age !== undefined && (data.age < 13 || data.age > 120)) {
+      throw new ValidationError('Please enter a valid age (13-120)');
+    }
+    
+    if (data.weight !== undefined && (data.weight < 20 || data.weight > 1000)) {
+      throw new ValidationError('Please enter a valid weight');
+    }
+    
+    if (data.height !== undefined && (data.height < 30 || data.height > 300)) {
+      throw new ValidationError('Please enter a valid height');
+    }
+
     try {
       // Sign up with Supabase Auth
       const { data: authData, error } = await supabase.auth.signUp({
@@ -27,6 +49,10 @@ export class SupabaseAuthService {
           data: {
             firstName: data.firstName,
             lastName: data.lastName,
+            age: data.age,
+            weight: data.weight,
+            height: data.height,
+            fitnessGoal: data.fitnessGoal,
           },
         },
       });
@@ -59,6 +85,25 @@ export class SupabaseAuthService {
 
       if (profileError) {
         console.error('Error creating user profile:', profileError);
+      }
+
+      // Create initial user profile with fitness data if provided
+      if (data.age || data.weight || data.height || data.fitnessGoal) {
+        const { error: profileDataError } = await supabase
+          .from('UserProfile')
+          .insert({
+            userId: authData.user.id,
+            age: data.age,
+            weight: data.weight,
+            height: data.height,
+            fitnessGoal: data.fitnessGoal,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+
+        if (profileDataError) {
+          console.error('Error creating user fitness profile:', profileDataError);
+        }
       }
 
       return {

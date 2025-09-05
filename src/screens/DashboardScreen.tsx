@@ -10,12 +10,17 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
 import { supabase } from '../services/supabase.client';
 import { Session } from '@supabase/supabase-js';
 import { dashboardService } from '../services/dashboard.service';
 import { workoutService } from '../services/workout.service';
 import { nutritionService } from '../services/nutrition.service';
 import { progressService } from '../services/progress.service';
+import ActivityRings from '../components/ActivityRings';
+import { DashboardSkeleton } from '../components/LoadingSkeleton';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 interface DashboardStats {
   weeklyWorkouts: number;
@@ -27,6 +32,7 @@ interface DashboardStats {
 }
 
 export default function DashboardScreen() {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [session, setSession] = useState<Session | null>(null);
   const [stats, setStats] = useState<DashboardStats>({
     weeklyWorkouts: 0,
@@ -120,12 +126,33 @@ export default function DashboardScreen() {
     </TouchableOpacity>
   );
 
+  // Activity rings data based on current stats
+  const activityRingsData = [
+    {
+      value: Math.min(stats.todayCalories, 2000),
+      maxValue: 2000,
+      color: '#FF6B6B',
+      label: 'Calories',
+      icon: 'flame'
+    },
+    {
+      value: Math.min(stats.weeklyMinutes, 150) / 150 * 100,
+      maxValue: 100,
+      color: '#4ECDC4',
+      label: 'Exercise',
+      icon: 'barbell'
+    },
+    {
+      value: 6, // Static for now - would come from water intake
+      maxValue: 8,
+      color: '#45B7D1',
+      label: 'Water',
+      icon: 'water'
+    }
+  ];
+
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0066CC" />
-      </View>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -146,6 +173,16 @@ export default function DashboardScreen() {
           <Ionicons name="flame" size={20} color="#FFA500" />
           <Text style={styles.streakText}>{stats.currentStreak}</Text>
         </View>
+      </View>
+
+      {/* Activity Rings */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Today's Goals</Text>
+        <ActivityRings 
+          rings={activityRingsData}
+          size={140}
+          strokeWidth={8}
+        />
       </View>
 
       {/* Today's Overview */}
@@ -183,13 +220,13 @@ export default function DashboardScreen() {
             icon="add-circle"
             title="Start Workout"
             color="#1890FF"
-            onPress={() => Alert.alert('Coming Soon', 'Workout tracking will be available soon!')}
+            onPress={() => navigation.navigate('StartWorkout')}
           />
           <QuickActionButton
             icon="nutrition"
             title="Log Meal"
             color="#00A67E"
-            onPress={() => Alert.alert('Coming Soon', 'Nutrition logging will be available soon!')}
+            onPress={() => navigation.navigate('Nutrition')}
           />
           <QuickActionButton
             icon="camera"
@@ -201,7 +238,7 @@ export default function DashboardScreen() {
             icon="water"
             title="Log Water"
             color="#00B4D8"
-            onPress={() => Alert.alert('Coming Soon', 'Water tracking will be available soon!')}
+            onPress={() => navigation.navigate('LogWater')}
           />
         </View>
       </View>

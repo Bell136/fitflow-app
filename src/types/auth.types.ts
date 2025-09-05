@@ -19,8 +19,27 @@ export interface AuthResponse {
 export interface RegistrationData {
   email: string;
   password: string;
+  confirmPassword: string;
   firstName?: string;
   lastName?: string;
+  age?: number;
+  weight?: number;
+  height?: number;
+  fitnessGoal?: 'lose_weight' | 'gain_muscle' | 'maintain_health' | 'increase_strength' | 'improve_endurance';
+  termsAccepted: boolean;
+}
+
+export interface PasswordStrength {
+  score: number; // 0-4
+  label: 'Very Weak' | 'Weak' | 'Fair' | 'Good' | 'Strong';
+  color: string;
+  checks: {
+    length: boolean;
+    uppercase: boolean;
+    lowercase: boolean;
+    number: boolean;
+    special: boolean;
+  };
 }
 
 export interface LoginCredentials {

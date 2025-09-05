@@ -1,5 +1,4 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +9,8 @@ import WorkoutScreen from '../screens/WorkoutScreen';
 import NutritionScreen from '../screens/NutritionScreen';
 import ProgressScreen from '../screens/ProgressScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import StartWorkoutScreen from '../screens/QuickActions/StartWorkoutScreen';
+import LogWaterScreen from '../screens/QuickActions/LogWaterScreen';
 
 export type RootStackParamList = {
   Main: undefined;
@@ -18,6 +19,8 @@ export type RootStackParamList = {
   Nutrition: undefined;
   Progress: undefined;
   Profile: undefined;
+  StartWorkout: undefined;
+  LogWater: undefined;
 };
 
 const Tab = createBottomTabNavigator<RootStackParamList>();
@@ -124,10 +127,24 @@ function TabNavigator() {
 
 export default function AppNavigator({ session }: AppNavigatorProps) {
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Main" component={TabNavigator} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Main" component={TabNavigator} />
+      <Stack.Screen 
+        name="StartWorkout" 
+        component={StartWorkoutScreen}
+        options={{ 
+          headerShown: false,
+          presentation: 'modal'
+        }}
+      />
+      <Stack.Screen 
+        name="LogWater" 
+        component={LogWaterScreen}
+        options={{ 
+          headerShown: false,
+          presentation: 'modal'
+        }}
+      />
+    </Stack.Navigator>
   );
 }
